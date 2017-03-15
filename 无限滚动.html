@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>懒加载</title>
+  <style>
+    #wrap,#wrap1{
+      height:400px;
+      width:300px;
+      background-color: #fbff3f;
+      overflow-y:scroll;
+    }
+    .el,.el1{
+      height:100px;
+      margin:10px;
+      /*padding:5px;*/
+      background-color: #62ff95;
+    }
+  </style>
+</head>
+<body>
+  <section id="wrap">
+    <div class="el">1</div>
+    <div class="el">2</div>
+    <div class="el">3</div>
+    <div class="el">4</div>
+    <div class="el">5</div>
+    <div class="el">6</div>
+  </section>
+
+  <section id="wrap1">
+    <div class="el1">1</div>
+    <div class="el1">2</div>
+    <div class="el1">3</div>
+    <div class="el1">4</div>
+    <div class="el1">5</div>
+    <div class="el1">6</div>
+    <hr id="bottom"/>
+  </section>
+</body>
+<script>
+  var wrap = document.getElementById('wrap');
+  var lastChild = wrap.lastElementChild;
+  var length = 6;
+  var fragment = document.createDocumentFragment();
+
+  function loadMore(els){
+    if(els[0].intersectionRatio<=0)   //加判断，当元素隐藏时不触发回调
+      return;
+    length = length + 4;
+    for(var i = length - 4 + 1;i <= length;i ++ ){
+
+      var el = document.createElement('div');
+      el.appendChild(document.createTextNode(i));
+      el.classList.add('el');
+      fragment.appendChild(el);
+    }
+    io.unobserve(lastChild);
+    wrap.appendChild(fragment);
+    lastChild = wrap.lastElementChild;
+    io.observe(lastChild);            //注意，坑！！！元素一旦被observe，无论其隐藏与否都会触发一次回调
+  }
+  var io = new IntersectionObserver(loadMore,{threshold:[0.1],root:wrap});
+  io.observe(lastChild);
+
+</script>
+<script>
+  var wrap1 = document.getElementById('wrap1');
+  var length1 = 6;
+  var bottom = document.getElementById('bottom');
+  var fragment1 = document.createDocumentFragment();
+  var io1 = new IntersectionObserver(entries=>{
+    if(entries[0].intersectionRatio > 0){
+      length1+=4;
+      for(var j = length1 - 4 + 1;j <= length1;j ++ ){
+
+        var el1 = document.createElement('div');
+        el1.appendChild(document.createTextNode(j));
+        el1.classList.add('el1');
+        fragment1.appendChild(el1);
+      }
+      wrap1.insertBefore(fragment1,bottom);
+    }
+    else
+      return;
+  },{root:wrap1,rootMargin:'0px 0px 200px 0px'});
+  io1.observe(bottom);
+</script>
+</html>
